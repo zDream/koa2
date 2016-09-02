@@ -1,3 +1,4 @@
+const path = require('path');
 const Koa = require('koa');
 const bodyParser = require('koa-bodyparser');
 const router = require('./routes/index');
@@ -7,6 +8,9 @@ const mongoose = require('mongoose');
 const app = new Koa();
 //post body 解析
 app.use(bodyParser());
+
+//static file
+app.use(convert(require('koa-static')(path.join(__dirname + '/public'))));
 
 //支持ejs模板
 app.use(views(__dirname + '/views', {
