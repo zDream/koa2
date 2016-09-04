@@ -13,6 +13,6 @@ module.exports = {
         }catch (e) {
 
         }*/
-        this.body = "into UserRegister!";
+        ctx.body = "into UserRegister!";
     }
 }

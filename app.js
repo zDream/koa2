@@ -1,10 +1,10 @@
 const Koa = require('koa');
-const path = require('path');
 const bodyParser = require('koa-bodyparser');
 const router = require('./routes/index');
 const views = require('koa-views');
 const convert  = require('koa-convert');
 const mongoose = require('mongoose');
+const path = require('path');
 const app = new Koa();
 //post body 解析
 app.use(bodyParser());
@@ -21,13 +21,13 @@ app.use(views(__dirname + '/views', {
 app.use(router.routes(),router.allowedMethods());
 
 //连接mongodb
-let DATABASE_URL = 'mongodb://localhost/koa';
-//use native promises Instead of mpromise //mongoose return mpromise
-mongoose.Promise = global.Promise;
-mongoose.connect(DATABASE_URL, (err) => {
-  if (err) throw err;
-  console.log('connect mongodb`s database success!!!!');
-});
+// let DATABASE_URL = 'mongodb://localhost/koa';
+// //use native promises Instead of mpromise //mongoose return mpromise
+// mongoose.Promise = global.Promise;
+// mongoose.connect(DATABASE_URL, (err) => {
+//   if (err) throw err;
+//   console.log('connect mongodb`s database success!!!!');
+// });
 // 在端口3000监听:
 app.listen(3000);
 console.log('app started at port 3000...');
