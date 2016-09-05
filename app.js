@@ -1,5 +1,5 @@
-const path = require('path');
 const Koa = require('koa');
+const path = require('path');
 const bodyParser = require('koa-bodyparser');
 const router = require('./routes/index');
 const views = require('koa-views');
@@ -16,7 +16,7 @@ app.use(convert(require('koa-static')(path.join(__dirname + '/public'))));
 app.use(views(__dirname + '/views', {
   extension: 'ejs'
 }));
-	
+
 //注册路由
 app.use(router.routes(),router.allowedMethods());
 
@@ -31,5 +31,3 @@ mongoose.connect(DATABASE_URL, (err) => {
 // 在端口3000监听:
 app.listen(3000);
 console.log('app started at port 3000...');
-
-module.exports = app;

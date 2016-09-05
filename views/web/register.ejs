@@ -4,15 +4,14 @@
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge, width=device-width, initial-scale=1, user-scalable=no"/>
     <title><%= title %></title>
-    <script src="http://apps.bdimg.com/libs/angular.js/1.4.6/angular.min.js"></script>
 </head>
-<body id="page-body">
-    <from action="/UserRegister" method="post">
+<body>
+    <form action="/UserRegister" method="post">
         <label>用户名：</label>
-        <input type="text" name="username">
+        <input type="text" name="username" placeholder="用户名" />
         <label>密码：</label>
-        <input type="password" name="userpassword">
-        <input type="submit" value="注册"/>
-    </from>
+        <input type="password" name="userpassword"  placeholder="密码" />
+        <input type="submit" value="注册" />
+    </form>
 </body>
 </html>

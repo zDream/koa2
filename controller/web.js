@@ -5,13 +5,14 @@ module.exports = {
         });
     },
     UserRegister: async (ctx, next) => {
-        try {
+        /*try {
             var userInfo = {
                 username : ctx.request.body.username,
                 password : ctx.request.body.userpassword,
             }
         }catch (e) {
 
-        }
+        }*/
+        this.body = "into UserRegister!";
     }
 }

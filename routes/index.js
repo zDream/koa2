@@ -4,7 +4,7 @@ var web = require('../controller/web');
 //首页
 router.get('/',index.index);
 //注册
-router.get("/register",web.register);
-router.post("/UserRegister",web.UserRegister);
+router.get('/register',web.register);
+router.post('/UserRegister',web.UserRegister);
 
 module.exports = router;
