@@ -1,10 +1,9 @@
 var router = require('koa-router')();
-var index = require('../controller/index');
-var web = require('../controller/web');
+var web = require('../app/controller/web');
 //首页
-router.get('/',index.index);
+router.get('/',web.index);
 //注册
 router.get('/register',web.register);
-router.post('/UserRegister',web.UserRegister);
+router.post('/regeditUser',web.UserRegister);
 
 module.exports = router;
