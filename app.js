@@ -21,14 +21,6 @@ app.use(views(__dirname + '/views', {
 //注册路由
 app.use(router.routes(),router.allowedMethods());
 
-//连接mongodb
-let DATABASE_URL = 'mongodb://localhost/koa';
-//use native promises Instead of mpromise //mongoose return mpromise
-mongoose.Promise = global.Promise;
-mongoose.connect(DATABASE_URL, (err) => {
-  if (err) throw err;
-  console.log('connect mongodb`s database success!!!!');
-});
 //在端口3000监听:
 app.listen(3000);
-console.log('app started at port 3000...');
+console.log('src started at port 3000...');
