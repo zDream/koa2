@@ -1,2 +1,3 @@
-// require('babel-register');
-// require('../src.js');
+require('babel-register');
+require('../app.js');
+require('../webpack.config.js')

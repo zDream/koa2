@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "main": "start.js",
     "scripts": {
-        "dev": "gulp",
+        "dev": "node build/dev-server.js",
         "start": "gulp nodemon"
     },
     "keywords": [
@@ -19,6 +19,7 @@
         "babel-preset-es2015-node6": "0.3.0",
         "babel-preset-stage-3": "6.5.0",
         "ejs": "^2.4.2",
+        "element-ui": "^2.0.7",
         "gulp": "^3.9.1",
         "koa": "2.0.0",
         "koa-bodyparser": "3.2.0",
@@ -27,7 +28,8 @@
         "koa-router": "^7.0.0",
         "koa-static": "^1.5.2",
         "koa-views": "^5.0.1",
-        "mongoose": "^4.5.4"
+        "mongoose": "^4.5.4",
+        "vue": "^2.5.9"
     },
     "devDependencies": {
         "babel-plugin-transform-runtime": "^6.23.0",
