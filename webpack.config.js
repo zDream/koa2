@@ -45,7 +45,7 @@ module.exports = (options = {}) => ({
       names: ['vendor', 'manifest']
     }),
     new HtmlWebpackPlugin({
-      template: 'src/vue.html'
+      template: 'index.html'
     })
   ],
   resolve: {
