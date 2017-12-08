@@ -48,11 +48,14 @@ var fileUpload = async(ctx,next) => {
     // 上传实例
     let upload = multer({
         storage: storage
+        // dest: 'assets/uploads/'
     })
     // 执行单文件上传
     let handle = await upload.single('file')
     let response = await handle(ctx)
     console.log('upload res', response)
+    console.log('req.file = ',response.req.file);
+    console.log('req.body = ',response.req.body)
     let res
     if (response) {
         res = {
@@ -83,6 +86,9 @@ var testDemo = async(ctx,next) =>{
 const readFile = function () {
     console.log('function')
 };
+let upload_old = async(ctx,next)=>{
+    await ctx.render('upload_old')
+}
 module.exports = {
     register: async (ctx, next) => {
         await ctx.render('register', {
@@ -93,5 +99,6 @@ module.exports = {
     index : index,
     upload : upload,
     fileUpload : fileUpload,
-    testDemo : testDemo
+    testDemo : testDemo,
+    upload_old : upload_old
 }

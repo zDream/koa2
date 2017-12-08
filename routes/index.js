@@ -7,6 +7,7 @@ router.get('/',web.index);
 router.get('/register',web.register);
 router.post('/regeditUser',web.UserRegister);
 router.get('/upload',web.upload);
+router.get('/upload_old',web.upload_old);
 
 //上传
 router.post('/fileUpload',web.fileUpload)
