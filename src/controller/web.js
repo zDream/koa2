@@ -1,7 +1,7 @@
 import userService from './../service/userService'
 import multer from 'koa-multer'
+import customStroage from '../utils/myCustomStorage'
 import path from 'path'
-import fs from 'fs'
 var regedit = async (ctx, next) => {
 
     try {
@@ -45,9 +45,20 @@ var fileUpload = async(ctx,next) => {
             cb(null, timeNow + '.' + postfix)
         }
     })
+    let mystorage = customStroage({
+        // 文件保存路径 文件重命名
+        destination: (req, file, cb) => {
+            let originalnameArr = file.originalname.split('.')
+            let postfix = originalnameArr[originalnameArr.length - 1]
+            console.log('originalnameArr', originalnameArr)
+            let timeNow = Date.now()
+            cb(null, uploadDir + timeNow + '.' + postfix)
+            // cb(null, uploadDir + "demo.mp4")
+        }
+    })
     // 上传实例
     let upload = multer({
-        storage: storage
+        storage: mystorage
         // dest: 'assets/uploads/'
     })
     // 执行单文件上传

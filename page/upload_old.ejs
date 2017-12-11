@@ -113,8 +113,10 @@
             start = end;
         }
 //        $('#pro').attr('value',33)
-        formData.append('file', fileStream)
+//        formData.append('file', fileStream.slice(0,10000000));
+        formData.append('file', fileStream);
         formData.append('name', name)
+
 
         if(fileStream.type=='image/jpeg'){
             var render = new FileReader();
@@ -131,18 +133,6 @@
             data: formData,
             processData: false,
             contentType: false,
-            xhr: function(xhr){
-                console.log('开始')
-                xhr.upload.onprogress = function progress(e) {
-                    console.log('进度条开始')
-                    if (e.total > 0) {
-                        e.percent = e.loaded / e.total * 100;
-                        $('#pro').attr('value',e.percent)
-                        console.log(e.percent)
-                    }
-//              option.onProgress(e);
-                };
-            },
             success: function (res) {
                 if (res.status === 200) {
                     console.log('成功', res)
