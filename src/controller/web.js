@@ -52,8 +52,8 @@ var fileUpload = async(ctx,next) => {
             let postfix = originalnameArr[originalnameArr.length - 1]
             let timeNow = Date.now()
             // cb(null, uploadDir + timeNow + '.' + postfix)
-            cb(null, uploadDir + req.body.flag+file.originalname)
-            // cb(null, uploadDir + req.body.file_name)
+            // cb(null, uploadDir + req.body.flag+file.originalname)
+            cb(null, uploadDir + req.body.file_name)
         }
     })
     // 上传实例

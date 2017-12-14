@@ -27,7 +27,7 @@ MyCustomStorage.prototype._handleFile = function _handleFile (req, file, cb) {
                 fs.accessSync(path,fs.F_OK);
             }catch(e){
                 options.flags='w'
-                console.log('11111')
+                // console.log('11111')
                 if(parseInt(req.body.start)!=0){
                     options.start = parseInt(req.body.start)
                 }
@@ -35,11 +35,11 @@ MyCustomStorage.prototype._handleFile = function _handleFile (req, file, cb) {
             }
             options.flags='r+'
             options.start = parseInt(req.body.start)
-            console.log('2222')
+            // console.log('2222')
             return true;
         }
         // console.log('is exist = '+ fsExistsSync(path,options))
-        // fsExistsSync(path,options)
+        fsExistsSync(path,options)
         console.log('start = '+options.start)
         var outStream = fs.createWriteStream(path,options)
         file.stream.pipe(outStream)

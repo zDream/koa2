@@ -114,11 +114,7 @@
         for (var i = 1; i <= segment; i++) {
             var end = start + chunk;
             chunks[i] = new Object();
-            if(start!=0){
-                chunks[i].start = start+=1;
-            }else {
-                chunks[i].start = start
-            }
+            chunks[i].start = start;
             if(i==segment){
                 chunks[i].end = fileStream.size
             }else {
@@ -171,9 +167,7 @@
             formData.set('start',chunks[i].start)
             formData.set('end',  chunks[i].end)
 //            console.log('start='+chunks[i].start+" end="+chunks[i].end);
-//            formData.set('file', chunks[i].blob,i+fileStream.name)
-            formData.set('flag',i)
-            formData.set('file', chunks[i].blob)
+            formData.set('file', chunks[i].blob,i+fileStream.name)
             xhr[i] = $.ajax({
                 url: 'http://localhost:3000/fileUpload',
                 type: 'POST',

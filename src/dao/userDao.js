@@ -1,14 +1,14 @@
 require('babel-polyfill');
 var mongoose = require("mongoose");
-var db = mongoose.createConnection("mongodb://localhost/test");
+// var db = mongoose.createConnection("mongodb://localhost/test");
 var Schema = mongoose.Schema;
-const user = require('../model/user.js')(Schema,db);
+// const user = require('../model/user.js')(Schema,db);
 
-db.once('open', function (callback) {
-    // yay!
-    console.log("mongoose connect success");
-});
-db.on('error',console.error.bind(console, 'connection error:'));
+// db.once('open', function (callback) {
+//     // yay!
+//     console.log("mongoose connect success");
+// });
+// db.on('error',console.error.bind(console, 'connection error:'));
 
 var userDao = async (userInfo) => {
     let new_user = new user({
