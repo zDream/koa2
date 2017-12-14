@@ -31,29 +31,29 @@ var upload = async (ctx,next) => {
 var fileUpload = async(ctx,next) => {
     await next()
     let uploadDir = 'assets/uploads/'
-    let storage = multer.diskStorage({
-        // 文件保存路径
-        destination: (req, file, cb) => {
-            cb(null, path.resolve(uploadDir))
-        },
-        // 文件重命名
-        filename: (req, file, cb) => {
-            let originalnameArr = file.originalname.split('.')
-            let postfix = originalnameArr[originalnameArr.length - 1]
-            console.log('originalnameArr', originalnameArr)
-            let timeNow = Date.now()
-            cb(null, timeNow + '.' + postfix)
-        }
-    })
+    // let storage = multer.diskStorage({
+    //     // 文件保存路径
+    //     destination: (req, file, cb) => {
+    //         cb(null, path.resolve(uploadDir))
+    //     },
+    //     // 文件重命名
+    //     filename: (req, file, cb) => {
+    //         let originalnameArr = file.originalname.split('.')
+    //         let postfix = originalnameArr[originalnameArr.length - 1]
+    //         console.log('originalnameArr', originalnameArr)
+    //         let timeNow = Date.now()
+    //         cb(null, timeNow + '.' + postfix)
+    //     }
+    // })
     let mystorage = customStroage({
         // 文件保存路径 文件重命名
         destination: (req, file, cb) => {
-            let originalnameArr = file.originalname.split('.')
+            let originalnameArr = req.body.file_name.split('.')
             let postfix = originalnameArr[originalnameArr.length - 1]
-            console.log('originalnameArr', originalnameArr)
             let timeNow = Date.now()
-            cb(null, uploadDir + timeNow + '.' + postfix)
-            // cb(null, uploadDir + "demo.mp4")
+            // cb(null, uploadDir + timeNow + '.' + postfix)
+            cb(null, uploadDir + req.body.flag+file.originalname)
+            // cb(null, uploadDir + req.body.file_name)
         }
     })
     // 上传实例
@@ -61,12 +61,13 @@ var fileUpload = async(ctx,next) => {
         storage: mystorage
         // dest: 'assets/uploads/'
     })
+
     // 执行单文件上传
     let handle = await upload.single('file')
     let response = await handle(ctx)
-    console.log('upload res', response)
-    console.log('req.file = ',response.req.file);
-    console.log('req.body = ',response.req.body)
+    // console.log('upload res', response)
+    // console.log('req.file = ',response.req.file);
+    // console.log('req.body = ',response.req.body)
     let res
     if (response) {
         res = {

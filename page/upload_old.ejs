@@ -89,6 +89,7 @@
             <input type="file" name="uploadFile" id="uploadFile" onchange="doUpload()" />
         </form>
     </div>
+    <input type="button" onclick="puase()" value="暂停">
     上传进度:<progress id="pro" value="0"></progress>
     <img id="image">
     <div class="upload-footer">
@@ -98,23 +99,45 @@
 </div>
 <script src="/jquery/jquery.js"></script>
 <script>
+    var xhr = [];
+
     var doUpload = function () {
-        var formData = new FormData()
+        var formData =new FormData()
         var fileStream = $('#uploadFile')[0].files[0];
         var name = $('input').val()
 
-        var chunk = 100*1024*1024//每片大小100M
+        let segment = 100;//段大小
+        var chunk = parseInt(fileStream.size/segment) //计算出每片大小
         var chunks = [];
         var start = 0;
         //文件分片
-        for (var i = 0; i < Math.ceil(fileStream.size / chunk); i++) {
+        for (var i = 1; i <= segment; i++) {
             var end = start + chunk;
-            chunks[i] = fileStream.slice(start , end);
+            chunks[i] = new Object();
+            if(start!=0){
+                chunks[i].start = start+=1;
+            }else {
+                chunks[i].start = start
+            }
+            if(i==segment){
+                chunks[i].end = fileStream.size
+            }else {
+                chunks[i].end = end;
+            }
+            chunks[i].blob = fileStream.slice(chunks[i].start , chunks[i].end);
+            chunks[i].start = start;
+            console.log(i+"start = "+(chunks[i].start)+" end = "+chunks[i].end)
             start = end;
         }
+//        console.log("start = "+(start+1)+" end = "+end)
+
+
+//        console.log("end start = "+(chunk*99+1)+"end end = "+fileStream.size)
 //        $('#pro').attr('value',33)
 //        formData.append('file', fileStream.slice(0,10000000));
-        formData.append('file', fileStream);
+        formData.append('file_name',fileStream.name);
+        formData.append('file_size',fileStream.size);
+//        formData.append('file', fileStream);
         formData.append('name', name)
 
 
@@ -126,37 +149,78 @@
             }
         }
 
+        var xhrOnProgress=function(fun) {
+            xhrOnProgress.onprogress = fun; //绑定监听
 
-        $.ajax({
-            url: 'http://localhost:3000/fileUpload',
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (res) {
-                if (res.status === 200) {
-                    console.log('成功', res)
-                    var childArr = [
-                        '<li class="preview-item">',
-                        '<div>',
-                        'filename: ',
-                        res.data.filename,
-                        '</div>',
-                        '<div>',
-                        'url: ',
-                        res.data.url,
-                        '</div>',
-                        '</li>'
-                    ]
-                    $('#previewList').append(childArr.join(''))
-                } else {
-                    console.log('失败', res)
+            //使用闭包实现监听绑
+            return function() {
+                //通过$.ajaxSettings.xhr();获得XMLHttpRequest对象
+                var xhr = $.ajaxSettings.xhr();
+                //判断监听函数是否为函数
+                if (typeof xhrOnProgress.onprogress !== 'function')
+                    return xhr;
+                //如果有监听函数并且xhr对象支持绑定时就把监听函数绑定上去
+                if (xhrOnProgress.onprogress && xhr.upload) {
+                    xhr.upload.onprogress = xhrOnProgress.onprogress;
                 }
-            },
-            error: function (res) {
-                console.log('error', res)
+                return xhr;
             }
-        })
+        }
+
+        for(let i =1;i<chunks.length;i++){
+            formData.set('start',chunks[i].start)
+            formData.set('end',  chunks[i].end)
+//            console.log('start='+chunks[i].start+" end="+chunks[i].end);
+//            formData.set('file', chunks[i].blob,i+fileStream.name)
+            formData.set('flag',i)
+            formData.set('file', chunks[i].blob)
+            xhr[i] = $.ajax({
+                url: 'http://localhost:3000/fileUpload',
+                type: 'POST',
+                async: false,
+                data: formData,
+                processData: false,
+                contentType: false,
+//            xhr:xhrOnProgress(function(e){
+//                var percent=e.loaded / e.total;//计算百分比
+//                $("#pro").attr("value",percent)
+//            }),
+//             complete: function(XHR, TS){
+//                console.log('xhr = '+XHR)
+//                console.log('TS = '+TS)
+//             },
+                success: function (res) {
+                    if (res.status === 200) {
+                        console.log('成功', res)
+                        var childArr = [
+                            '<li class="preview-item">',
+                            '<div>',
+                            'filename: ',
+                            res.data.filename,
+                            '</div>',
+                            '<div>',
+                            'url: ',
+                            res.data.url,
+                            '</div>',
+                            '</li>'
+                        ]
+                        $('#previewList').append(childArr.join(''))
+                    } else {
+                        console.log('失败', res)
+                    }
+                },
+                error: function (res) {
+                    console.log('error', res)
+                }
+            })
+        }
+
+        console.log('demo')
+    }
+    var puase = function (){
+        console.log(xhr)
+        xhr.abort();
+//        alert("暂停")
     }
 </script>
 </body>
