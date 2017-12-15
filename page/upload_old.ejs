@@ -89,7 +89,9 @@
             <input type="file" name="uploadFile" id="uploadFile" onchange="doUpload()" />
         </form>
     </div>
+    <label id="lab"></label>
     <input type="button" onclick="puase()" value="暂停">
+    <input type="button" onclick="upload()" value="继续上传">
     上传进度:<progress id="pro" value="0"></progress>
     <img id="image">
     <div class="upload-footer">
@@ -99,10 +101,23 @@
 </div>
 <script src="/jquery/jquery.js"></script>
 <script>
-    var xhr = [];
-
+    var flag = false
+    var formData = []
+    var infoQuene = new Array()// formData 数据队列
+    var xhrQuene = new Array()// xhr 数据队列
+    //停止上传
+    var puase = function (){
+        flag = true;
+//        xhr.abort();
+//        alert("暂停")
+    }
+    //继续上传
+    function upload(){
+        flag = false;
+        ajaxMethod(infoQuene);
+    }
     var doUpload = function () {
-        var formData =new FormData()
+
         var fileStream = $('#uploadFile')[0].files[0];
         var name = $('input').val()
 
@@ -122,20 +137,8 @@
             }
             chunks[i].blob = fileStream.slice(chunks[i].start , chunks[i].end);
             chunks[i].start = start;
-            console.log(i+"start = "+(chunks[i].start)+" end = "+chunks[i].end)
             start = end;
         }
-//        console.log("start = "+(start+1)+" end = "+end)
-
-
-//        console.log("end start = "+(chunk*99+1)+"end end = "+fileStream.size)
-//        $('#pro').attr('value',33)
-//        formData.append('file', fileStream.slice(0,10000000));
-        formData.append('file_name',fileStream.name);
-        formData.append('file_size',fileStream.size);
-//        formData.append('file', fileStream);
-        formData.append('name', name)
-
 
         if(fileStream.type=='image/jpeg'){
             var render = new FileReader();
@@ -164,57 +167,72 @@
         }
 
         for(let i =1;i<chunks.length;i++){
-            formData.set('start',chunks[i].start)
-            formData.set('end',  chunks[i].end)
-//            console.log('start='+chunks[i].start+" end="+chunks[i].end);
-            formData.set('file', chunks[i].blob,i+fileStream.name)
-            xhr[i] = $.ajax({
-                url: 'http://localhost:3000/fileUpload',
-                type: 'POST',
-                async: false,
-                data: formData,
-                processData: false,
-                contentType: false,
-//            xhr:xhrOnProgress(function(e){
-//                var percent=e.loaded / e.total;//计算百分比
-//                $("#pro").attr("value",percent)
-//            }),
-//             complete: function(XHR, TS){
-//                console.log('xhr = '+XHR)
-//                console.log('TS = '+TS)
-//             },
-                success: function (res) {
-                    if (res.status === 200) {
-                        console.log('成功', res)
-                        var childArr = [
-                            '<li class="preview-item">',
-                            '<div>',
-                            'filename: ',
-                            res.data.filename,
-                            '</div>',
-                            '<div>',
-                            'url: ',
-                            res.data.url,
-                            '</div>',
-                            '</li>'
-                        ]
-                        $('#previewList').append(childArr.join(''))
-                    } else {
-                        console.log('失败', res)
-                    }
-                },
-                error: function (res) {
-                    console.log('error', res)
-                }
-            })
+            formData[i] = new FormData()
+            formData[i].append('file_name',fileStream.name);
+            formData[i].append('file_size',fileStream.size);
+            formData[i].append('name', name)
+            formData[i].set('start',chunks[i].start)
+            formData[i].set('end',  chunks[i].end)
+            formData[i].set('file', chunks[i].blob,i+fileStream.name)
+            infoQuene.push(formData[i])
+        }
+        ajaxMethod(infoQuene);
+
+
+    }
+
+    function ajaxMethod(info){
+
+        if(flag){
+            return
         }
 
-        console.log('demo')
-    }
-    var puase = function (){
-        console.log(xhr)
-        xhr.abort();
-//        alert("暂停")
+        //如果队列为空，则结束 ajax
+        if (info === undefined || info.length == 0) {
+            // array empty or does not exist
+            console.log('已结束循环')
+            return
+        }
+        var xhr = $.ajax({
+            url: 'http://localhost:3000/fileUpload',
+            type: 'POST',
+//                async: false,
+            data: infoQuene.shift(),
+            processData: false,
+            contentType: false,
+//                xhr:xhrOnProgress(function(e){
+//                    var percent=e.loaded / e.total;//计算百分比
+//                    $("#pro").attr("value",percent)
+//                    $("#pro").attr("value",xhr.length/chunks.length)
+//                    $("#lab").html(xhr.length/chunks.length)
+//                }),
+            success: function (res) {
+                if (res.status === 200) {
+                    xhrQuene.push(xhr)
+                    ajaxMethod(infoQuene)
+
+                    console.log('成功', res)
+                    var childArr = [
+                        '<li class="preview-item">',
+                        '<div>',
+                        'filename: ',
+                        res.data.filename,
+                        '</div>',
+                        '<div>',
+                        'url: ',
+                        res.data.url,
+                        '</div>',
+                        '</li>'
+                    ]
+                    $('#previewList').append(childArr.join(''))
+                } else {
+                    console.log('失败', res)
+                }
+            },
+            error: function (res) {
+                console.log('error', res)
+            }
+        })
     }
 </script>
 </body>
