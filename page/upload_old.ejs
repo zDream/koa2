@@ -89,10 +89,10 @@
             <input type="file" name="uploadFile" id="uploadFile" onchange="doUpload()" />
         </form>
     </div>
-    <label id="lab"></label>
     <input type="button" onclick="puase()" value="暂停">
     <input type="button" onclick="upload()" value="继续上传">
     上传进度:<progress id="pro" value="0"></progress>
+    <label id="lab"></label>
     <img id="image">
     <div class="upload-footer">
         <ul id="previewList" class="preview-list">
@@ -108,8 +108,6 @@
     //停止上传
     var puase = function (){
         flag = true;
-//        xhr.abort();
-//        alert("暂停")
     }
     //继续上传
     function upload(){
@@ -126,8 +124,8 @@
         var chunks = [];
         var start = 0;
         //文件分片
-        for (var i = 1; i <= segment; i++) {
-            var end = start + chunk;
+        for (let i = 0; i < segment; i++) {
+            let end = start + chunk;
             chunks[i] = new Object();
             chunks[i].start = start;
             if(i==segment){
@@ -148,25 +146,7 @@
             }
         }
 
-        var xhrOnProgress=function(fun) {
-            xhrOnProgress.onprogress = fun; //绑定监听
-
-            //使用闭包实现监听绑
-            return function() {
-                //通过$.ajaxSettings.xhr();获得XMLHttpRequest对象
-                var xhr = $.ajaxSettings.xhr();
-                //判断监听函数是否为函数
-                if (typeof xhrOnProgress.onprogress !== 'function')
-                    return xhr;
-                //如果有监听函数并且xhr对象支持绑定时就把监听函数绑定上去
-                if (xhrOnProgress.onprogress && xhr.upload) {
-                    xhr.upload.onprogress = xhrOnProgress.onprogress;
-                }
-                return xhr;
-            }
-        }
-
-        for(let i =1;i<chunks.length;i++){
+        for(let i =0;i<chunks.length;i++){
             formData[i] = new FormData()
             formData[i].append('file_name',fileStream.name);
             formData[i].append('file_size',fileStream.size);
@@ -177,12 +157,15 @@
             infoQuene.push(formData[i])
         }
         ajaxMethod(infoQuene);
-
-
     }
 
     function ajaxMethod(info){
 
+        $("#pro").attr("value",xhrQuene.length/formData.length)
+        $("#lab").html(parseInt(xhrQuene.length/formData.length*100))
+        console.log("1111xhrQuene.length = "+xhrQuene.length+" formData.length= "+formData.length)
+
+        //flag 为 true 则暂停上传
         if(flag){
             return
         }
@@ -193,6 +176,7 @@
             console.log('已结束循环')
             return
         }
+
         var xhr = $.ajax({
             url: 'http://localhost:3000/fileUpload',
             type: 'POST',
@@ -200,16 +184,11 @@
             data: infoQuene.shift(),
             processData: false,
             contentType: false,
-//                xhr:xhrOnProgress(function(e){
-//                    var percent=e.loaded / e.total;//计算百分比
-//                    $("#pro").attr("value",percent)
-//                    $("#pro").attr("value",xhr.length/chunks.length)
-//                    $("#lab").html(xhr.length/chunks.length)
-//                }),
             success: function (res) {
                 if (res.status === 200) {
                     xhrQuene.push(xhr)
                     ajaxMethod(infoQuene)
+
 
                     console.log('成功', res)
                     var childArr = [
