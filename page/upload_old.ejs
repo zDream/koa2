@@ -16,7 +16,7 @@
             -moz-osx-font-smoothing: grayscale;
         }
         .main-box {
-            width: 600px;
+            /*width: 600px;*/
             margin: 50px auto;
             padding: 10px;
             border: 1px solid #f5f7f9;
@@ -58,15 +58,7 @@
         .upload-body form input {
             width: 100%;
         }
-        .upload-footer {
-            border: 1px solid #f5f7f9;
-            margin: 10px auto;
-        }
-        .preview-list {
-            margin: 0;
-            padding: 0;
-            text-align: left;
-        }
+
         .preview-item {
             margin: 0;
             padding: 5px;
@@ -75,6 +67,9 @@
         }
         .preview-item:hover {
             background: #f5f7f9;
+        }
+        .upload-list{
+            margin: 10px 0px;
         }
     </style>
 </head>
@@ -86,39 +81,67 @@
     <div class="upload-body">
         <span>上传图片</span>
         <form id="uploadForm" enctype="multipart/form-data" method="post">
-            <input type="file" name="uploadFile" id="uploadFile" onchange="doUpload()" />
+
+        <input type="file" name="uploadFile" id="uploadFile" onchange="doUpload()" />
         </form>
     </div>
-    <input type="button" onclick="puase()" value="暂停">
-    <input type="button" onclick="upload()" value="继续上传">
-    上传进度:<progress id="pro" value="0"></progress>
-    <label id="lab"></label>
-    <img id="image">
-    <div class="upload-footer">
-        <ul id="previewList" class="preview-list">
-        </ul>
+    <div class="upload-list">
+        <label id="fileNameLabel"></label>
+        上传进度:<progress id="pro" value="0"></progress>
+        <label id="lab"></label>
+        <input type="button" onclick="puase()" value="暂停">
+        <input type="button" onclick="upload()" value="继续上传">
     </div>
 </div>
 <script src="/jquery/jquery.js"></script>
 <script>
-    var flag = false
-    var formData = []
-    var infoQuene = new Array()// formData 数据队列
-    var xhrQuene = new Array()// xhr 数据队列
+
+    const test = i =>
+        new Promise((resolve, reject) => {
+            console.log(i, 'start');
+            setTimeout(() => {
+                console.log(i, 'finish');
+                resolve();
+            }, 3000);
+            console.log('end')
+        });
+
+
+//    function test(index){
+//        console.log('a = '+index)
+//        var now = new Date();
+//        var exitTime = now.getTime() +3000;
+//        while (true) {
+//            now = new Date();
+//            if (now.getTime() > exitTime)
+//                break;
+//        }
+//        console.log('end ')
+//    }
+
+    let dataArray = new Array()
+
     //停止上传
     var puase = function (){
-        flag = true;
+        dataArray.flag = true
     }
     //继续上传
     function upload(){
-        flag = false;
-        ajaxMethod(infoQuene);
+        dataArray.flag = false
+        ajaxMethod(dataArray);
     }
     var doUpload = function () {
+        let data = []
+        data.formData = []
+        data.formDataQueue = new Array()
+        data.flag = false
+        data.xhrQuene = new Array()
+        dataArray.push(data)
 
         var fileStream = $('#uploadFile')[0].files[0];
         var name = $('input').val()
 
+        $("#fileNameLabel").html(fileStream.name)
         let segment = 100;//段大小
         var chunk = parseInt(fileStream.size/segment) //计算出每片大小
         var chunks = [];
@@ -138,42 +161,80 @@
             start = end;
         }
 
-        if(fileStream.type=='image/jpeg'){
-            var render = new FileReader();
-            render.readAsDataURL(fileStream)
-            render.onload = function(){
-                $('#image').attr("src",render.result)
-            }
-        }
-
         for(let i =0;i<chunks.length;i++){
-            formData[i] = new FormData()
-            formData[i].append('file_name',fileStream.name);
-            formData[i].append('file_size',fileStream.size);
-            formData[i].append('name', name)
-            formData[i].set('start',chunks[i].start)
-            formData[i].set('end',  chunks[i].end)
-            formData[i].set('file', chunks[i].blob,i+fileStream.name)
-            infoQuene.push(formData[i])
+            data.formData[i] = new FormData()
+            data.formData[i].append('file_name',fileStream.name);
+            data.formData[i].append('file_size',fileStream.size);
+            data.formData[i].append('name', name)
+            data.formData[i].set('start',chunks[i].start)
+            data.formData[i].set('end',  chunks[i].end)
+            data.formData[i].set('file', chunks[i].blob,i+fileStream.name)
+            data.formDataQueue.push(data.formData[i])
         }
-        ajaxMethod(infoQuene);
+        ajaxMethod(dataArray)
     }
 
-    function ajaxMethod(info){
 
-        $("#pro").attr("value",xhrQuene.length/formData.length)
-        $("#lab").html(parseInt(xhrQuene.length/formData.length*100))
-        console.log("1111xhrQuene.length = "+xhrQuene.length+" formData.length= "+formData.length)
+    const ajaxMethod = info =>
+        new Promise((resolve,reject)=>{
+
+            $("#pro").attr("value",dataArray[0].xhrQuene.length/dataArray[0].formData.length)
+            $("#lab").html(parseInt(dataArray[0].xhrQuene.length/dataArray[0].formData.length*100))
+//            console.log("1111xhrQuene.length = "+xhrQuene.length+" formData.length= "+formData.length)
+
+            //flag 为 true 则暂停上传
+            if(info.flag){
+                return
+            }
+
+            //如果队列为空，则结束 ajax
+            if (info[0].formDataQueue === undefined || info[0].formDataQueue.length == 0) {
+                // array empty or does not exist
+                console.log('已结束循环')
+                info.shift()
+                return
+            }
+
+            var xhr = $.ajax({
+                url: 'http://localhost:3000/fileUpload',
+                type: 'POST',
+//                async: false,
+                data: info[0].formDataQueue.shift(),
+                processData: false,
+                contentType: false,
+                success: function (res) {
+                    if (res.status === 200) {
+                        dataArray[0].xhrQuene.push(xhr)
+                        ajaxMethod(dataArray)
+
+                        console.log('成功', res)
+
+                    } else {
+                        console.log('失败', res)
+                    }
+                },
+                error: function (res) {
+                    console.log('error', res)
+                }
+            })
+        })
+
+    function ajaxMethod1(info){
+//        $("#pro").attr("value",dataArray.xhrQuene.length/dataArray.formData.length)
+//        $("#lab").html(parseInt(dataArray.xhrQuene.length/dataArray.formData.length))
+//        console.log("1111xhrQuene.length = "+xhrQuene.length+" formData.length= "+formData.length)
 
         //flag 为 true 则暂停上传
-        if(flag){
+        if(info.flag){
             return
         }
 
+        console.log("info[0].formDataQueue.length= "+dataArray[0].formDataQueue.length)
         //如果队列为空，则结束 ajax
-        if (info === undefined || info.length == 0) {
+        if (info[0].formDataQueue === undefined || info[0].formDataQueue.length == 0) {
             // array empty or does not exist
             console.log('已结束循环')
+            info.shift()
             return
         }
 
@@ -181,29 +242,14 @@
             url: 'http://localhost:3000/fileUpload',
             type: 'POST',
 //                async: false,
-            data: infoQuene.shift(),
+            data: info[0].formDataQueue.shift(),
             processData: false,
             contentType: false,
             success: function (res) {
                 if (res.status === 200) {
-                    xhrQuene.push(xhr)
-                    ajaxMethod(infoQuene)
-
-
+                    dataArray[0].xhrQuene.push(xhr)
+                    ajaxMethod(dataArray)
                     console.log('成功', res)
-                    var childArr = [
-                        '<li class="preview-item">',
-                        '<div>',
-                        'filename: ',
-                        res.data.filename,
-                        '</div>',
-                        '<div>',
-                        'url: ',
-                        res.data.url,
-                        '</div>',
-                        '</li>'
-                    ]
-                    $('#previewList').append(childArr.join(''))
                 } else {
                     console.log('失败', res)
                 }
