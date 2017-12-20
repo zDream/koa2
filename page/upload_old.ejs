@@ -89,8 +89,8 @@
         <label id="fileNameLabel"></label>
         上传进度:<progress id="pro" value="0"></progress>
         <label id="lab"></label>
-        <input type="button" onclick="puase()" value="暂停">
-        <input type="button" onclick="upload()" value="继续上传">
+        <input type="button" id="puase"  value="暂停">
+        <input type="button" id="upload"  value="继续上传">
     </div>
 </div>
 <script src="/jquery/jquery.js"></script>
@@ -122,15 +122,19 @@
     let dataArray = new Array()
 
     //停止上传
-    var puase = function (){
-        dataArray.flag = true
+    var puase = function (data){
+        dataArray[0].flag = true
     }
     //继续上传
-    function upload(){
-        dataArray.flag = false
+    function upload(data){
+        dataArray[0].flag = false
         ajaxMethod(dataArray);
     }
     var doUpload = function () {
+        var fileStream = $('#uploadFile')[0].files[0];
+        if(fileStream === undefined){
+            return
+        }
         let data = []
         data.formData = []
         data.formDataQueue = new Array()
@@ -138,7 +142,7 @@
         data.xhrQuene = new Array()
         dataArray.push(data)
 
-        var fileStream = $('#uploadFile')[0].files[0];
+
         var name = $('input').val()
 
         $("#fileNameLabel").html(fileStream.name)
@@ -151,7 +155,8 @@
             let end = start + chunk;
             chunks[i] = new Object();
             chunks[i].start = start;
-            if(i==segment){
+            //如果是最后一段，则到最后段
+            if(i==(segment-1)){
                 chunks[i].end = fileStream.size
             }else {
                 chunks[i].end = end;
@@ -171,61 +176,23 @@
             data.formData[i].set('file', chunks[i].blob,i+fileStream.name)
             data.formDataQueue.push(data.formData[i])
         }
+        $("#puase").attr('onclick','puase()')
+        $("#upload").attr('onclick','upload()')
+//        $('#puase').onclick = puase(data)
+
+//        $('#upload').onclick = upload(data)
         ajaxMethod(dataArray)
     }
 
 
-    const ajaxMethod = info =>
-        new Promise((resolve,reject)=>{
 
-            $("#pro").attr("value",dataArray[0].xhrQuene.length/dataArray[0].formData.length)
-            $("#lab").html(parseInt(dataArray[0].xhrQuene.length/dataArray[0].formData.length*100))
-//            console.log("1111xhrQuene.length = "+xhrQuene.length+" formData.length= "+formData.length)
 
-            //flag 为 true 则暂停上传
-            if(info.flag){
-                return
-            }
-
-            //如果队列为空，则结束 ajax
-            if (info[0].formDataQueue === undefined || info[0].formDataQueue.length == 0) {
-                // array empty or does not exist
-                console.log('已结束循环')
-                info.shift()
-                return
-            }
-
-            var xhr = $.ajax({
-                url: 'http://localhost:3000/fileUpload',
-                type: 'POST',
-//                async: false,
-                data: info[0].formDataQueue.shift(),
-                processData: false,
-                contentType: false,
-                success: function (res) {
-                    if (res.status === 200) {
-                        dataArray[0].xhrQuene.push(xhr)
-                        ajaxMethod(dataArray)
-
-                        console.log('成功', res)
-
-                    } else {
-                        console.log('失败', res)
-                    }
-                },
-                error: function (res) {
-                    console.log('error', res)
-                }
-            })
-        })
-
-    function ajaxMethod1(info){
-//        $("#pro").attr("value",dataArray.xhrQuene.length/dataArray.formData.length)
-//        $("#lab").html(parseInt(dataArray.xhrQuene.length/dataArray.formData.length))
-//        console.log("1111xhrQuene.length = "+xhrQuene.length+" formData.length= "+formData.length)
+    function ajaxMethod(info){
+        $("#pro").attr("value",dataArray[0].xhrQuene.length/dataArray[0].formData.length)
+        $("#lab").html(parseInt(dataArray[0].xhrQuene.length/dataArray[0].formData.length*100))
 
         //flag 为 true 则暂停上传
-        if(info.flag){
+        if(info[0].flag){
             return
         }
 
