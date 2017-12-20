@@ -124,9 +124,13 @@
     //停止上传
     var puase = function (data){
         dataArray[0].flag = true
+        dataArray[0].xhrQuene.pop().abort()
     }
     //继续上传
     function upload(data){
+        if(!dataArray[0].flag){
+            return
+        }
         dataArray[0].flag = false
         ajaxMethod(dataArray);
     }
@@ -146,7 +150,7 @@
         var name = $('input').val()
 
         $("#fileNameLabel").html(fileStream.name)
-        let segment = 100;//段大小
+        let segment = 10;//段大小
         var chunk = parseInt(fileStream.size/segment) //计算出每片大小
         var chunks = [];
         var start = 0;
@@ -196,7 +200,7 @@
             return
         }
 
-        console.log("info[0].formDataQueue.length= "+dataArray[0].formDataQueue.length)
+        console.log("info[0].formDataQueue.length= "+info[0].formDataQueue.length)
         //如果队列为空，则结束 ajax
         if (info[0].formDataQueue === undefined || info[0].formDataQueue.length == 0) {
             // array empty or does not exist
@@ -205,16 +209,17 @@
             return
         }
 
-        var xhr = $.ajax({
+        var xhr
+        xhr = $.ajax({
             url: 'http://localhost:3000/fileUpload',
             type: 'POST',
 //                async: false,
-            data: info[0].formDataQueue.shift(),
+            data: info[0].formDataQueue[0],
             processData: false,
             contentType: false,
             success: function (res) {
                 if (res.status === 200) {
-                    dataArray[0].xhrQuene.push(xhr)
+                    info[0].formDataQueue.shift()
                     ajaxMethod(dataArray)
                     console.log('成功', res)
                 } else {
@@ -225,6 +230,7 @@
                 console.log('error', res)
             }
         })
+        info[0].xhrQuene.push(xhr)
     }
 </script>
 </body>
