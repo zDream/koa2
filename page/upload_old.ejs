@@ -94,45 +94,20 @@
     </div>
 </div>
 <script src="/jquery/jquery.js"></script>
+<script src="/upload.js"></script>
 <script>
-
-    const test = i =>
-        new Promise((resolve, reject) => {
-            console.log(i, 'start');
-            setTimeout(() => {
-                console.log(i, 'finish');
-                resolve();
-            }, 3000);
-            console.log('end')
-        });
-
-
-//    function test(index){
-//        console.log('a = '+index)
-//        var now = new Date();
-//        var exitTime = now.getTime() +3000;
-//        while (true) {
-//            now = new Date();
-//            if (now.getTime() > exitTime)
-//                break;
-//        }
-//        console.log('end ')
-//    }
-
-    let dataArray = new Array()
-
+    let dataArray = new Map();
+    let work = new Map();
     //停止上传
     var puase = function (data){
-        dataArray[0].flag = true
-        dataArray[0].xhrQuene.pop().abort()
+        work.get(data).terminate();
+        work.delete(data);
+        console.log("停止上传"+data);
     }
     //继续上传
     function upload(data){
-        if(!dataArray[0].flag){
-            return
-        }
-        dataArray[0].flag = false
-        ajaxMethod(dataArray);
+        workUtil(dataArray.get(data))
+        console.log("继续上传"+data)
     }
     var doUpload = function () {
         var fileStream = $('#uploadFile')[0].files[0];
@@ -143,14 +118,9 @@
         data.formData = []
         data.formDataQueue = new Array()
         data.flag = false
-        data.xhrQuene = new Array()
-        dataArray.push(data)
-
-
-        var name = $('input').val()
 
         $("#fileNameLabel").html(fileStream.name)
-        let segment = 10;//段大小
+        let segment = 5;//段大小
         var chunk = parseInt(fileStream.size/segment) //计算出每片大小
         var chunks = [];
         var start = 0;
@@ -170,68 +140,53 @@
             start = end;
         }
 
+        //对文件名进行重命名
+        let originalnameArr = fileStream.name.split('.')
+        let postfix = originalnameArr[originalnameArr.length - 1]
+        let file_name = Date.now()+(parseInt( Math.random()*1000000)+"."+postfix)
+
+
         for(let i =0;i<chunks.length;i++){
-            data.formData[i] = new FormData()
-            data.formData[i].append('file_name',fileStream.name);
-            data.formData[i].append('file_size',fileStream.size);
-            data.formData[i].append('name', name)
-            data.formData[i].set('start',chunks[i].start)
-            data.formData[i].set('end',  chunks[i].end)
-            data.formData[i].set('file', chunks[i].blob,i+fileStream.name)
+            data.formData[i] = []
+            data.formData[i].file_name = file_name
+            data.formData[i].file_size = fileStream.size
+            data.formData[i].start = chunks[i].start
+            data.formData[i].end = chunks[i].end
+            data.formData[i].file = chunks[i].blob,i+fileStream.name
             data.formDataQueue.push(data.formData[i])
         }
-        $("#puase").attr('onclick','puase()')
-        $("#upload").attr('onclick','upload()')
-//        $('#puase').onclick = puase(data)
+        $("#puase").attr('onclick',"puase('"+file_name+"')")
+        $("#upload").attr('onclick',"upload('"+file_name+"')")
 
-//        $('#upload').onclick = upload(data)
-        ajaxMethod(dataArray)
+        dataArray.set(file_name,data)
+        workUtil(dataArray.get(file_name))
     }
 
+    function workUtil(data){
 
+        let worker = new Worker('upload.js')
+        worker.onmessage = function (event) {
 
+            console.log("上传成功了吗"+event.data)
 
-    function ajaxMethod(info){
-        $("#pro").attr("value",dataArray[0].xhrQuene.length/dataArray[0].formData.length)
-        $("#lab").html(parseInt(dataArray[0].xhrQuene.length/dataArray[0].formData.length*100))
+            let arr = dataArray.get(event.data);
+            arr.formDataQueue.shift()
 
-        //flag 为 true 则暂停上传
-        if(info[0].flag){
-            return
-        }
+            $("#pro").attr("value",(arr.formData.length-arr.formDataQueue.length)/arr.formData.length)
+            $("#lab").html(parseInt((arr.formData.length-arr.formDataQueue.length)/arr.formData.length*100))
 
-        console.log("info[0].formDataQueue.length= "+info[0].formDataQueue.length)
-        //如果队列为空，则结束 ajax
-        if (info[0].formDataQueue === undefined || info[0].formDataQueue.length == 0) {
-            // array empty or does not exist
-            console.log('已结束循环')
-            info.shift()
-            return
-        }
-
-        var xhr
-        xhr = $.ajax({
-            url: 'http://localhost:3000/fileUpload',
-            type: 'POST',
-//                async: false,
-            data: info[0].formDataQueue[0],
-            processData: false,
-            contentType: false,
-            success: function (res) {
-                if (res.status === 200) {
-                    info[0].formDataQueue.shift()
-                    ajaxMethod(dataArray)
-                    console.log('成功', res)
-                } else {
-                    console.log('失败', res)
-                }
-            },
-            error: function (res) {
-                console.log('error', res)
+            if(arr.formDataQueue.length===0 || arr.formDataQueue === undefined){
+                dataArray.delete(event.data)
+                work.get(event.data).terminate();
             }
-        })
-        info[0].xhrQuene.push(xhr)
+            worker.postMessage(data.formDataQueue[0])
+        }
+        worker.postMessage(data.formDataQueue[0])
+
+        work.set(data.formDataQueue[0].file_name,worker);
     }
+
+
 </script>
 </body>
 </html>

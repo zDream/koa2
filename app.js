@@ -11,6 +11,7 @@ app.use(bodyParser());
 //static file
 app.use(convert(require('koa-static')(path.join(__dirname + '/public'))));
 app.use(convert(require('koa-static')(path.join(__dirname + '/plug-in'))));
+app.use(convert(require('koa-static')(path.join(__dirname + '/page'))));
 
 //支持ejs模板
 app.use(views(__dirname + '/page', {
