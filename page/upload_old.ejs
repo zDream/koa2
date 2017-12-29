@@ -59,18 +59,6 @@
             width: 100%;
         }
 
-        .preview-item {
-            margin: 0;
-            padding: 5px;
-            list-style: none;
-            cursor: default;
-        }
-        .preview-item:hover {
-            background: #f5f7f9;
-        }
-        .upload-list{
-            margin: 10px 0px;
-        }
     </style>
 </head>
 <body>
@@ -81,7 +69,6 @@
     <div class="upload-body">
         <span>上传图片</span>
         <form id="uploadForm" enctype="multipart/form-data" method="post">
-
         <input type="file" name="uploadFile" id="uploadFile" onchange="doUpload()" />
         </form>
     </div>
@@ -94,7 +81,7 @@
     </div>
 </div>
 <script src="/jquery/jquery.js"></script>
-<script src="/upload.js"></script>
+<!--<script src="/upload.js"></script>-->
 <script>
     let dataArray = new Map();
     let work = new Map();
@@ -102,6 +89,7 @@
     var puase = function (data){
         work.get(data).terminate();
         work.delete(data);
+
         console.log("停止上传"+data);
     }
     //继续上传

@@ -4,7 +4,9 @@ const router = require('./routes/index');
 const views = require('koa-views');
 const convert  = require('koa-convert');
 const path = require('path');
+const cors = require('koa2-cors');
 const app = new Koa();
+app.use(cors())
 //post body 解析
 app.use(bodyParser());
 
